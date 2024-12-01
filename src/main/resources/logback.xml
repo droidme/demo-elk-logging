@@ -1,0 +1,55 @@
+<configuration>
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder" />
+    <import class="ch.qos.logback.core.ConsoleAppender" />
+    <import class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder" />
+    <import class="net.logstash.logback.appender.LogstashTcpSocketAppender" />
+
+    <appender name="console" class="ConsoleAppender">
+        <encoder class="PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -- %msg -- %mdc%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="console-json" class="ConsoleAppender">
+        <encoder class="LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp />
+                <loggerName />
+                <logLevel />
+                <message />
+                <mdc />
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender name="logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>elastic.fritz.box:4560</destination>
+        <encoder class="LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <version/> <!-- Logstash json format version, the @version field in the output-->
+                <mdc/> <!-- MDC variables on the Thread will be written as JSON fields-->
+                <context/> <!--Outputs entries from logback's context -->
+                <logLevel/>
+                <loggerName/>
+                <pattern> <!-- we can add some custom fields to be sent with all the log entries. make filtering easier in Logstash-->
+                    <pattern>
+                        {
+                        "appName": "demo-logstash"
+                        }
+                    </pattern>
+                </pattern>
+                <threadName/>
+                <message/>
+                <logstashMarkers/> <!-- Useful so we can add extra information for specific log lines as Markers-->
+                <arguments/> <!--or through StructuredArguments-->
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL:-info}">
+        <appender-ref ref="logstash" />
+        <appender-ref ref="console" />
+    </root>
+</configuration>
